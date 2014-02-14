@@ -15,8 +15,6 @@
  */
 package net.kuujo.vertigo;
 
-import net.kuujo.vertigo.component.Component;
-
 import org.vertx.java.core.Vertx;
 import org.vertx.java.platform.Container;
 
@@ -53,17 +51,6 @@ public interface VertigoFactory {
    * @return
    *   The empty Vertigo instance.
    */
-  @SuppressWarnings("rawtypes")
   Vertigo createVertigo();
-
-  /**
-   * Creates a Vertigo instance.
-   *
-   * @param component
-   *   The current component instance.
-   * @return
-   *   A Vertigo instance which contains the current component instance.
-   */
-  <T extends Component<T>> Vertigo<T> createVertigo(T component);
 
 }

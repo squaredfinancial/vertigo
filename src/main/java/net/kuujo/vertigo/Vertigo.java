@@ -22,7 +22,6 @@ import org.vertx.java.platform.Container;
 
 import net.kuujo.vertigo.cluster.LocalCluster;
 import net.kuujo.vertigo.cluster.RemoteCluster;
-import net.kuujo.vertigo.component.Component;
 import net.kuujo.vertigo.context.InstanceContext;
 import net.kuujo.vertigo.context.NetworkContext;
 import net.kuujo.vertigo.network.Network;
@@ -40,7 +39,7 @@ import net.kuujo.vertigo.network.Network;
  *
  * @param <T> The current component instance type.
  */
-public interface Vertigo<T extends Component<T>> {
+public interface Vertigo {
 
   /**
    * Indicates whether the current Vertigo instance is a component instance.
@@ -50,6 +49,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   Whether the current instance is a component.
    */
+  @Deprecated
   boolean isComponent();
 
   /**
@@ -64,7 +64,8 @@ public interface Vertigo<T extends Component<T>> {
    *   The current component instance. If the current Vertigo instance is not
    *   a component then this value will be null.
    */
-  T component();
+  @Deprecated
+  Object component();
 
   /**
    * Gets the component configuration. This configuration is also available
@@ -74,6 +75,7 @@ public interface Vertigo<T extends Component<T>> {
    *   The component configuration. If the current Vertigo instance is not a
    *   component then this value will be null.
    */
+  @Deprecated
   JsonObject config();
 
   /**
@@ -87,7 +89,7 @@ public interface Vertigo<T extends Component<T>> {
    *   The current component instance context.If the current Vertigo instance is
    *   not a component then this value will be null.
    */
-  InstanceContext<T> context();
+  InstanceContext<?> context();
 
   /**
    * Creates a new network.
@@ -111,7 +113,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> deployLocalNetwork(Network network);
+  public Vertigo deployLocalNetwork(Network network);
 
   /**
    * Deploys a network within the current Vert.x instance.<p>
@@ -129,7 +131,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> deployLocalNetwork(Network network, Handler<AsyncResult<NetworkContext>> doneHandler);
+  public Vertigo deployLocalNetwork(Network network, Handler<AsyncResult<NetworkContext>> doneHandler);
 
   /**
    * Shuts down a local network.
@@ -139,7 +141,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> shutdownLocalNetwork(NetworkContext context);
+  public Vertigo shutdownLocalNetwork(NetworkContext context);
 
   /**
    * Shuts down a local network.
@@ -151,7 +153,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> shutdownLocalNetwork(NetworkContext context, Handler<AsyncResult<Void>> doneHandler);
+  public Vertigo shutdownLocalNetwork(NetworkContext context, Handler<AsyncResult<Void>> doneHandler);
 
   /**
    * Deploys a network via the Vert.x event bus.
@@ -171,7 +173,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> deployRemoteNetwork(String address, Network network);
+  public Vertigo deployRemoteNetwork(String address, Network network);
 
   /**
    * Deploys a network via the Vert.x event bus.
@@ -195,7 +197,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> deployRemoteNetwork(String address, Network network, Handler<AsyncResult<NetworkContext>> doneHandler);
+  public Vertigo deployRemoteNetwork(String address, Network network, Handler<AsyncResult<NetworkContext>> doneHandler);
 
   /**
    * Shuts down a network via the Vert.x event bus.
@@ -211,7 +213,7 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> shutdownRemoteNetwork(String address, NetworkContext context);
+  public Vertigo shutdownRemoteNetwork(String address, NetworkContext context);
 
   /**
    * Shuts down a network via the Vert.x event bus.
@@ -229,6 +231,6 @@ public interface Vertigo<T extends Component<T>> {
    * @return
    *   The called Vertigo instance.
    */
-  public Vertigo<T> shutdownRemoteNetwork(String address, NetworkContext context, Handler<AsyncResult<Void>> doneHandler);
+  public Vertigo shutdownRemoteNetwork(String address, NetworkContext context, Handler<AsyncResult<Void>> doneHandler);
 
 }

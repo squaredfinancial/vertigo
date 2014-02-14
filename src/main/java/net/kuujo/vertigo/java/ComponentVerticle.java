@@ -39,7 +39,7 @@ import org.vertx.java.platform.Verticle;
  * @author Jordan Halterman
  */
 abstract class ComponentVerticle<T extends Component<T>> extends Verticle {
-  protected Vertigo<T> vertigo;
+  protected Vertigo vertigo;
   protected InstanceContext<T> context;
   protected JsonObject config;
   protected Logger logger;
@@ -69,7 +69,7 @@ abstract class ComponentVerticle<T extends Component<T>> extends Verticle {
     config = container.config();
     final T component = createComponent(context);
     VertigoFactory factory = new DefaultVertigoFactory(vertx, container);
-    vertigo = factory.createVertigo(component);
+    vertigo = factory.createVertigo();
     try {
       checkConfig(container.config());
       setupInput(component);

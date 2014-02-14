@@ -45,7 +45,6 @@ import org.vertx.java.platform.Verticle;
  * @author Jordan Halterman
  */
 public abstract class VertigoVerticle extends Verticle {
-  @SuppressWarnings("rawtypes")
   protected Vertigo vertigo;
 
   @Override

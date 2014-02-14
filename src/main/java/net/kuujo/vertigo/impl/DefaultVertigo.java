@@ -40,10 +40,10 @@ import net.kuujo.vertigo.network.Network;
  *
  * @author Jordan Halterman
  */
-public final class DefaultVertigo<T extends Component<T>> implements Vertigo<T> {
+public final class DefaultVertigo implements Vertigo {
   private final Vertx vertx;
   private final Container container;
-  private final T component;
+  private final Component<?> component;
 
   public DefaultVertigo(Verticle verticle) {
     this(verticle.getVertx(), verticle.getContainer());
@@ -55,19 +55,13 @@ public final class DefaultVertigo<T extends Component<T>> implements Vertigo<T> 
     this.component = null;
   }
 
-  public DefaultVertigo(Vertx vertx, Container container, T component) {
-    this.vertx = vertx;
-    this.container = container;
-    this.component = component;
-  }
-
   @Override
   public boolean isComponent() {
     return component != null;
   }
 
   @Override
-  public T component() {
+  public Component<?> component() {
     return component;
   }
 
@@ -77,7 +71,7 @@ public final class DefaultVertigo<T extends Component<T>> implements Vertigo<T> 
   }
 
   @Override
-  public InstanceContext<T> context() {
+  public InstanceContext<?> context() {
     return isComponent() ? component.context() : null;
   }
 
@@ -87,56 +81,56 @@ public final class DefaultVertigo<T extends Component<T>> implements Vertigo<T> 
   }
 
   @Override
-  public Vertigo<T> deployLocalNetwork(Network network) {
+  public Vertigo deployLocalNetwork(Network network) {
     Cluster cluster = new LocalCluster(vertx, container);
     cluster.deployNetwork(network);
     return this;
   }
 
   @Override
-  public Vertigo<T> deployLocalNetwork(Network network, Handler<AsyncResult<NetworkContext>> doneHandler) {
+  public Vertigo deployLocalNetwork(Network network, Handler<AsyncResult<NetworkContext>> doneHandler) {
     Cluster cluster = new LocalCluster(vertx, container);
     cluster.deployNetwork(network, doneHandler);
     return this;
   }
 
   @Override
-  public Vertigo<T> shutdownLocalNetwork(NetworkContext context) {
+  public Vertigo shutdownLocalNetwork(NetworkContext context) {
     Cluster cluster = new LocalCluster(vertx, container);
     cluster.shutdownNetwork(context);
     return this;
   }
 
   @Override
-  public Vertigo<T> shutdownLocalNetwork(NetworkContext context, Handler<AsyncResult<Void>> doneHandler) {
+  public Vertigo shutdownLocalNetwork(NetworkContext context, Handler<AsyncResult<Void>> doneHandler) {
     Cluster cluster = new LocalCluster(vertx, container);
     cluster.shutdownNetwork(context, doneHandler);
     return this;
   }
 
   @Override
-  public Vertigo<T> deployRemoteNetwork(String address, Network network) {
+  public Vertigo deployRemoteNetwork(String address, Network network) {
     Cluster cluster = new RemoteCluster(vertx, container, address);
     cluster.deployNetwork(network);
     return this;
   }
 
   @Override
-  public Vertigo<T> deployRemoteNetwork(String address, Network network, Handler<AsyncResult<NetworkContext>> doneHandler) {
+  public Vertigo deployRemoteNetwork(String address, Network network, Handler<AsyncResult<NetworkContext>> doneHandler) {
     Cluster cluster = new RemoteCluster(vertx, container, address);
     cluster.deployNetwork(network, doneHandler);
     return this;
   }
 
   @Override
-  public Vertigo<T> shutdownRemoteNetwork(String address, NetworkContext context) {
+  public Vertigo shutdownRemoteNetwork(String address, NetworkContext context) {
     Cluster cluster = new RemoteCluster(vertx, container, address);
     cluster.shutdownNetwork(context);
     return this;
   }
 
   @Override
-  public Vertigo<T> shutdownRemoteNetwork(String address, NetworkContext context, Handler<AsyncResult<Void>> doneHandler) {
+  public Vertigo shutdownRemoteNetwork(String address, NetworkContext context, Handler<AsyncResult<Void>> doneHandler) {
     Cluster cluster = new RemoteCluster(vertx, container, address);
     cluster.shutdownNetwork(context, doneHandler);
     return this;

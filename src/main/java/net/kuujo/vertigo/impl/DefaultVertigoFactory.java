@@ -17,7 +17,6 @@ package net.kuujo.vertigo.impl;
 
 import net.kuujo.vertigo.Vertigo;
 import net.kuujo.vertigo.VertigoFactory;
-import net.kuujo.vertigo.component.Component;
 
 import org.vertx.java.core.Vertx;
 import org.vertx.java.platform.Container;
@@ -52,14 +51,8 @@ public class DefaultVertigoFactory implements VertigoFactory {
   }
 
   @Override
-  @SuppressWarnings("rawtypes")
   public Vertigo createVertigo() {
     return new DefaultVertigo(vertx, container);
-  }
-
-  @Override
-  public <T extends Component<T>> Vertigo<T> createVertigo(T component) {
-    return new DefaultVertigo<T>(vertx, container, component);
   }
 
 }
