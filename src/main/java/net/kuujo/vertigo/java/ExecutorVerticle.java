@@ -28,6 +28,7 @@ import net.kuujo.vertigo.rpc.Executor;
  *
  * @author Jordan Halterman
  */
+@Deprecated
 public abstract class ExecutorVerticle extends ComponentVerticle<Executor> {
   protected Executor executor;
 

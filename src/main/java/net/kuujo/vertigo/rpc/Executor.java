@@ -34,6 +34,7 @@ import net.kuujo.vertigo.runtime.TimeoutException;
  *
  * @author Jordan Halterman
  */
+@Deprecated
 public interface Executor extends Component<Executor> {
 
   /**

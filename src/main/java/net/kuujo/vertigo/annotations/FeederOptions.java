@@ -28,6 +28,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * @author Jordan Halterman
  */
+@Deprecated
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FeederOptions {

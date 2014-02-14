@@ -648,6 +648,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor component configuration.
    */
+  @Deprecated
   public Component<Executor> addExecutor(String address, String moduleOrMain) {
     if (isModuleName(moduleOrMain)) {
       return addExecutorModule(address, moduleOrMain);
@@ -672,6 +673,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor component configuration.
    */
+  @Deprecated
   public Component<Executor> addExecutor(String address, String moduleOrMain, JsonObject config) {
     if (isModuleName(moduleOrMain)) {
       return addExecutorModule(address, moduleOrMain, config);
@@ -697,6 +699,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor component configuration.
    */
+  @Deprecated
   public Component<Executor> addExecutor(String address, String moduleOrMain, int numInstances) {
     if (isModuleName(moduleOrMain)) {
       return addExecutorModule(address, moduleOrMain, numInstances);
@@ -725,6 +728,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor component configuration.
    */
+  @Deprecated
   public Component<Executor> addExecutor(String address, String moduleOrMain, JsonObject config, int numInstances) {
     if (isModuleName(moduleOrMain)) {
       return addExecutorModule(address, moduleOrMain, config, numInstances);
@@ -747,6 +751,7 @@ public final class Network implements Serializable {
    * @throws IllegalArgumentException
    *   If the module name is not a valid module identifier.
    */
+  @Deprecated
   public Module<Executor> addExecutorModule(String address, String moduleName) {
     return addModule(new Module<Executor>(Executor.class, address, moduleName));
   }
@@ -767,6 +772,7 @@ public final class Network implements Serializable {
    * @throws IllegalArgumentException
    *   If the module name is not a valid module identifier.
    */
+  @Deprecated
   public Module<Executor> addExecutorModule(String address, String moduleName, JsonObject config) {
     return addModule(new Module<Executor>(Executor.class, address, moduleName).setConfig(config));
   }
@@ -788,6 +794,7 @@ public final class Network implements Serializable {
    * @throws IllegalArgumentException
    *   If the module name is not a valid module identifier.
    */
+  @Deprecated
   public Module<Executor> addExecutorModule(String address, String moduleName, int numInstances) {
     return addModule(new Module<Executor>(Executor.class, address, moduleName).setNumInstances(numInstances));
   }
@@ -812,6 +819,7 @@ public final class Network implements Serializable {
    * @throws IllegalArgumentException
    *   If the module name is not a valid module identifier.
    */
+  @Deprecated
   public Module<Executor> addExecutorModule(String address, String moduleName, JsonObject config, int numInstances) {
     return addModule(new Module<Executor>(Executor.class, address, moduleName).setConfig(config).setNumInstances(numInstances));
   }
@@ -827,6 +835,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor verticle configuration.
    */
+  @Deprecated
   public Verticle<Executor> addExecutorVerticle(String address, String main) {
     return addVerticle(new Verticle<Executor>(Executor.class, address, main));
   }
@@ -845,6 +854,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor verticle configuration.
    */
+  @Deprecated
   public Verticle<Executor> addExecutorVerticle(String address, String main, JsonObject config) {
     return addVerticle(new Verticle<Executor>(Executor.class, address, main).setConfig(config));
   }
@@ -864,6 +874,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor verticle configuration.
    */
+  @Deprecated
   public Verticle<Executor> addExecutorVerticle(String address, String main, int numInstances) {
     return addVerticle(new Verticle<Executor>(Executor.class, address, main).setNumInstances(numInstances));
   }
@@ -886,6 +897,7 @@ public final class Network implements Serializable {
    * @return
    *   The new executor verticle configuration.
    */
+  @Deprecated
   public Verticle<Executor> addExecutorVerticle(String address, String main, JsonObject config, int numInstances) {
     return addVerticle(new Verticle<Executor>(Executor.class, address, main).setConfig(config).setNumInstances(numInstances));
   }

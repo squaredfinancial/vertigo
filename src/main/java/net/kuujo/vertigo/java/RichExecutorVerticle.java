@@ -34,6 +34,7 @@ import net.kuujo.vertigo.runtime.TimeoutException;
  *
  * @author Jordan Halterman
  */
+@Deprecated
 public abstract class RichExecutorVerticle extends ComponentVerticle<Executor> {
   protected Executor executor;
 
