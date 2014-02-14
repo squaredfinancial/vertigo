@@ -287,7 +287,7 @@ public interface Feeder extends Component<Feeder> {
    * @return
    *   The emitted message identifier.
    */
-  MessageId emit(JsonObject body, Handler<AsyncResult<MessageId>> ackHandler);
+  <T> MessageId emit(JsonObject body, Handler<AsyncResult<T>> ackHandler);
 
   /**
    * Emits a message to a non-default stream.
@@ -321,6 +321,6 @@ public interface Feeder extends Component<Feeder> {
    * @return
    *   The emitted message identifier.
    */
-  MessageId emit(String stream, JsonObject body, Handler<AsyncResult<MessageId>> ackHandler);
+  <T> MessageId emit(String stream, JsonObject body, Handler<AsyncResult<T>> ackHandler);
 
 }

@@ -49,12 +49,12 @@ public class BasicFeeder extends AbstractComponent<Feeder> implements Feeder {
   private Handler<Feeder> feedHandler;
   private Handler<Void> drainHandler;
   private InternalQueue queue = new InternalQueue();
-  private boolean autoRetry;
-  private int retryAttempts = AUTO_RETRY_ATTEMPTS_UNLIMITED;
+  protected boolean autoRetry;
+  protected int retryAttempts = AUTO_RETRY_ATTEMPTS_UNLIMITED;
   private long feedInterval = DEFAULT_FEED_INTERVAL;
-  private boolean started;
-  private boolean paused;
-  private boolean fed;
+  protected boolean started;
+  protected boolean paused;
+  protected boolean fed;
   private long feedTimer;
 
   public BasicFeeder(Vertx vertx, Container container, InstanceContext<Feeder> context) {
@@ -246,7 +246,7 @@ public class BasicFeeder extends AbstractComponent<Feeder> implements Feeder {
   }
 
   @Override
-  public MessageId emit(JsonObject data, Handler<AsyncResult<MessageId>> ackHandler) {
+  public <T> MessageId emit(JsonObject data, Handler<AsyncResult<T>> ackHandler) {
     return doFeed(null, data, 0, ackHandler);
   }
 
@@ -256,38 +256,39 @@ public class BasicFeeder extends AbstractComponent<Feeder> implements Feeder {
   }
 
   @Override
-  public MessageId emit(String stream, JsonObject data, Handler<AsyncResult<MessageId>> ackHandler) {
+  public <T> MessageId emit(String stream, JsonObject data, Handler<AsyncResult<T>> ackHandler) {
     return doFeed(stream, data, 0, ackHandler);
   }
 
   /**
    * Executes a feed.
    */
-  protected final MessageId doFeed(final String stream, final JsonObject data, final Handler<AsyncResult<MessageId>> ackHandler) {
+  protected final <T> MessageId doFeed(final String stream, final JsonObject data, final Handler<AsyncResult<T>> ackHandler) {
     return doFeed(stream, data, 0, ackHandler);
   }
 
   /**
    * Executes a feed.
    */
-  protected final MessageId doFeed(final JsonObject data, final Handler<AsyncResult<MessageId>> ackHandler) {
+  protected final <T> MessageId doFeed(final JsonObject data, final Handler<AsyncResult<T>> ackHandler) {
     return doFeed(null, data, 0, ackHandler);
   }
 
   /**
    * Executes a feed.
    */
-  private final MessageId doFeed(final String stream, final JsonObject data, final int attempts, final Handler<AsyncResult<MessageId>> ackHandler) {
+  private final <T> MessageId doFeed(final String stream, final JsonObject data, final int attempts, final Handler<AsyncResult<T>> ackHandler) {
     final MessageId id = stream != null ? output.emitTo(stream, data) : output.emit(data);
     queue.enqueue(id, new Handler<AsyncResult<MessageId>>() {
       @Override
+      @SuppressWarnings("unchecked")
       public void handle(AsyncResult<MessageId> result) {
         if (autoRetry && (retryAttempts == AUTO_RETRY_ATTEMPTS_UNLIMITED || attempts < retryAttempts)
             && result.failed() && result.cause() instanceof TimeoutException) {
           doFeed(stream, data, attempts+1, ackHandler);
         }
         else if (ackHandler != null) {
-          ackHandler.handle(result);
+          ackHandler.handle((AsyncResult<T>) result);
         }
       }
     });
@@ -298,7 +299,7 @@ public class BasicFeeder extends AbstractComponent<Feeder> implements Feeder {
   /**
    * Checks the current pause status.
    */
-  private void checkPause() {
+  protected void checkPause() {
     if (paused) {
       if (!feedQueueFull()) {
         paused = false;
