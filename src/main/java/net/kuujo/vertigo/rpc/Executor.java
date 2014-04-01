@@ -15,6 +15,8 @@
  */
 package net.kuujo.vertigo.rpc;
 
+import java.util.Collection;
+
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.json.JsonObject;
@@ -317,5 +319,45 @@ public interface Executor extends Component<Executor> {
    *   The emitted message correlation identifier.
    */
   MessageId execute(String stream, JsonObject body, Handler<AsyncResult<JsonMessage>> resultHandler);
+
+  /**
+   * Executes the network via the default stream, aggregating results
+   *
+   * @param body
+   *   The message body.
+   * @param resultHandler
+   *   An asynchronous result handler to be called with the execution result.
+   *   The result handler will be called only once the source message has been
+   *   fully processed. If multiple results are received for the same execution,
+   *   the result handler will be called once with all results in a Collection.
+   *   If the execution times out, a {@link TimeoutException} will be the cause
+   *   of the failure.
+   *   If the emitted message is explicitly failed, a {@link FailureException}
+   *   will be the cause of the failure.
+   * @return
+   *   The emitted message correlation identifier.
+   */
+  MessageId executeCollecting(JsonObject body, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler);
+
+  /**
+   * Executes the network via a non-default stream, aggregating results
+   *
+   * @param stream
+   *   The stream to which to emit the message.
+   * @param body
+   *   The message body.
+   * @param resultHandler
+   *   An asynchronous result handler to be called with the execution result.
+   *   The result handler will be called only once the source message has been
+   *   fully processed. If multiple results are received for the same execution,
+   *   the result handler will be called once with all results in a Collection.
+   *   If the execution times out, a {@link TimeoutException} will be the cause
+   *   of the failure.
+   *   If the emitted message is explicitly failed, a {@link FailureException}
+   *   will be the cause of the failure.
+   * @return
+   *   The emitted message correlation identifier.
+   */
+  MessageId executeCollecting(String stream, JsonObject body, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler);
 
 }

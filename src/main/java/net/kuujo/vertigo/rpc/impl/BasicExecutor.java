@@ -16,6 +16,7 @@
 package net.kuujo.vertigo.rpc.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -285,6 +286,16 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
     return doExecute(stream, args, 0, resultHandler);
   }
 
+  @Override
+  public MessageId executeCollecting(JsonObject args, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+    return doExecuteCollecting(null, args, 0, resultHandler);
+  }
+
+  @Override
+  public MessageId executeCollecting(String stream, JsonObject args, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+    return doExecuteCollecting(stream, args, 0, resultHandler);
+  }
+
   /**
    * Performs an execution.
    */
@@ -300,6 +311,20 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
   }
 
   /**
+   * Performs an execution expecting to collect multiple results.
+   */
+  protected MessageId doExecuteCollecting(JsonObject args, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+    return doExecuteCollecting(null, args, 0, resultHandler);
+  }
+
+  /**
+   * Performs an execution expecting to collect multiple results.
+   */
+  protected MessageId doExecuteCollecting(String stream, JsonObject args, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+    return doExecuteCollecting(stream, args, 0, resultHandler);
+  }
+
+  /**
    * Performs an execution.
    */
   private MessageId doExecute(final String stream, final JsonObject args, final int attempts, final Handler<AsyncResult<JsonMessage>> resultHandler) {
@@ -310,6 +335,27 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
         if (autoRetry && (retryAttempts == AUTO_RETRY_ATTEMPTS_UNLIMITED || attempts < retryAttempts)
             && result.failed() && result.cause() instanceof TimeoutException) {
           doExecute(stream, args, attempts+1, resultHandler);
+        }
+        else {
+          resultHandler.handle(result);
+        }
+      }
+    });
+    executed = true; checkPause();
+    return id;
+  }
+
+  /**
+   * Performs an execution expecting to collect multiple results.
+   */
+  private MessageId doExecuteCollecting(final String stream, final JsonObject args, final int attempts, final Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+    final MessageId id = stream != null ? output.emitTo(stream, args) : output.emit(args);
+    queue.enqueueCollecting(id, new Handler<AsyncResult<Collection<JsonMessage>>>() {
+      @Override
+      public void handle(AsyncResult<Collection<JsonMessage>> result) {
+        if (autoRetry && (retryAttempts == AUTO_RETRY_ATTEMPTS_UNLIMITED || attempts < retryAttempts)
+            && result.failed() && result.cause() instanceof TimeoutException) {
+          doExecuteCollecting(stream, args, attempts+1, resultHandler);
         }
         else {
           resultHandler.handle(result);
@@ -364,13 +410,26 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
      */
     private static class FutureResult {
       private final long timer;
+      private final boolean collect;
       private final Handler<AsyncResult<JsonMessage>> handler;
+      private final Handler<AsyncResult<Collection<JsonMessage>>> collectedHandler;
+
       private List<JsonMessage> results = new ArrayList<>();
 
-      public FutureResult(long timer, Handler<AsyncResult<JsonMessage>> handler) {
+      private FutureResult(long timer, boolean collect, Handler<AsyncResult<JsonMessage>> handler, Handler<AsyncResult<Collection<JsonMessage>>> collectedHandler) {
         this.timer = timer;
+        this.collect = collect;
         this.handler = handler;
+        this.collectedHandler = collectedHandler;
       }
+      public static FutureResult createFutureResult(long timer, Handler<AsyncResult<JsonMessage>> handler) {
+        return  new FutureResult(timer, false, handler, null);
+      }
+
+      public static FutureResult createFutureResultCollecting(long timer, Handler<AsyncResult<Collection<JsonMessage>>> collectedHandler) {
+        return  new FutureResult(timer, true, null, collectedHandler);
+      }
+
     }
 
     /**
@@ -401,7 +460,24 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
           }
         }
       });
-      futures.put(id.correlationId(), new FutureResult(timerId, resultHandler));
+      futures.put(id.correlationId(), FutureResult.createFutureResult(timerId, resultHandler));
+    }
+
+    /**
+     * Enqueues a new item in the execute queue. When the item is acked or failed
+     * by ID, or when a result is received, the appropriate handlers will be called.
+     */
+    private void enqueueCollecting(final MessageId id, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+      long timerId = vertx.setTimer(replyTimeout, new Handler<Long>() {
+        @Override
+        public void handle(Long timerId) {
+          FutureResult future = futures.get(id.correlationId());
+          if (future != null) {
+            new DefaultFutureResult<Collection<JsonMessage>>(TIMEOUT_EXCEPTION).setHandler(futures.remove(id.correlationId()).collectedHandler);
+          }
+        }
+      });
+      futures.put(id.correlationId(), FutureResult.createFutureResultCollecting(timerId, resultHandler));
     }
 
     /**
@@ -411,8 +487,13 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
       FutureResult future = futures.remove(id.correlationId());
       if (future != null) {
         vertx.cancelTimer(future.timer);
-        for (JsonMessage result : future.results) {
-          new DefaultFutureResult<JsonMessage>(result).setHandler(future.handler);
+        if (future.collect) {
+            new DefaultFutureResult<Collection<JsonMessage>>(future.results).setHandler(future.collectedHandler);
+        }
+        else {
+          for (JsonMessage result : future.results) {
+            new DefaultFutureResult<JsonMessage>(result).setHandler(future.handler);
+          }
         }
       }
     }
@@ -424,7 +505,12 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
       FutureResult future = futures.remove(id.correlationId());
       if (future != null) {
         vertx.cancelTimer(future.timer);
-        new DefaultFutureResult<JsonMessage>(FAILURE_EXCEPTION).setHandler(future.handler);
+        if (future.collect) {
+          new DefaultFutureResult<Collection<JsonMessage>>(FAILURE_EXCEPTION).setHandler(future.collectedHandler);
+        }
+        else {
+          new DefaultFutureResult<JsonMessage>(FAILURE_EXCEPTION).setHandler(future.handler);
+        }
       }
     }
 
@@ -435,7 +521,12 @@ public class BasicExecutor extends AbstractComponent<Executor> implements Execut
       FutureResult future = futures.remove(id.correlationId());
       if (future != null) {
         vertx.cancelTimer(future.timer);
-        new DefaultFutureResult<JsonMessage>(TIMEOUT_EXCEPTION).setHandler(future.handler);
+        if (future.collect) {
+          new DefaultFutureResult<Collection<JsonMessage>>(TIMEOUT_EXCEPTION).setHandler(future.collectedHandler);
+        }
+        else {
+          new DefaultFutureResult<JsonMessage>(TIMEOUT_EXCEPTION).setHandler(future.handler);
+        }
       }
     }
 
