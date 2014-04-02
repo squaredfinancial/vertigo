@@ -15,6 +15,8 @@
  */
 package net.kuujo.vertigo.java;
 
+import java.util.Collection;
+
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.json.JsonObject;
@@ -90,6 +92,28 @@ public abstract class RichExecutorVerticle extends ComponentVerticle<Executor> {
       }
     };
   }
+
+  private Handler<AsyncResult<Collection<JsonMessage>>> wrapHandlerCollecting(final Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+      return new Handler<AsyncResult<Collection<JsonMessage>>>() {
+        @Override
+        public void handle(AsyncResult<Collection<JsonMessage>> result) {
+          if (result.failed()) {
+            if (result.cause() instanceof FailureException) {
+              handleFailure((FailureException) result.cause());
+            }
+            else if (result.cause() instanceof TimeoutException) {
+              handleTimeout((TimeoutException) result.cause());
+            }
+          }
+          else {
+            handleResultsCollected(result.result());
+          }
+          if (resultHandler != null) {
+            resultHandler.handle(result);
+          }
+        }
+      };
+    }
 
   /**
    * Called when the executor is requesting the next message.
@@ -167,14 +191,83 @@ public abstract class RichExecutorVerticle extends ComponentVerticle<Executor> {
   }
 
   /**
-   * Called when a message is successfully processed and a result is received.
+   * Executes a message, aggregating multiple results.
+   *
+   * @param args
+   *   The output message body.
+   * @return
+   *   The output message identifier.
+   */
+  public MessageId executeCollecting(JsonObject args) {
+    return executor.executeCollecting(args, wrapHandlerCollecting(null));
+  }
+
+  /**
+   * Executes a message, aggregating multiple results.
+   *
+   * @param stream
+   *   The stream to which to emit the message.
+   * @param args
+   *   The output message body.
+   * @return
+   *   The output message identifier.
+   */
+  public MessageId executeCollecting(String stream, JsonObject args) {
+    return executor.executeCollecting(stream, args, wrapHandlerCollecting(null));
+  }
+
+  /**
+   * Executes a message, aggregating multiple results.
+   *
+   * @param args
+   *   The output message body.
+   * @param resultHandler
+   *   An asynchronous handler to be called with the execution result.
+   * @return
+   *   The output message identifier.
+   */
+  public MessageId executeCollecting(JsonObject args, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+    return executor.executeCollecting(args, wrapHandlerCollecting(resultHandler));
+  }
+
+  /**
+   * Executes a message, aggregating multiple results.
+   *
+   * @param stream
+   *   The stream to which to emit the message.
+   * @param args
+   *   The output message body.
+   * @param resultHandler
+   *   An asynchronous handler to be called with the execution result.
+   * @return
+   *   The output message identifier.
+   */
+  public MessageId executeCollecting(String stream, JsonObject args, Handler<AsyncResult<Collection<JsonMessage>>> resultHandler) {
+    return executor.executeCollecting(stream, args, wrapHandlerCollecting(resultHandler));
+  }
+
+  /**
+   * Called when an execute()ed message is successfully processed and a result is received.
+   *
+   * Override this method to provide custom handling for execution results.
+   *
+   * This method is not called on results of messages sent by executeCollecting()
+   *
+   * @param result
+   *   The result message.
+   */
+  protected void handleResult(JsonMessage result) {
+  }
+
+  /**
+   * Called when an executeCollecting()ed message is successfully processed and collected results are received.
    *
    * Override this method to provide custom handling for execution results.
    *
    * @param result
    *   The result message.
    */
-  protected void handleResult(JsonMessage result) {
+  protected void handleResultsCollected(Collection<JsonMessage> results) {
   }
 
   /**
